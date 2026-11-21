@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encapsulation Lab – HNDIT3012 Week 6</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f8fb; --card:#ffffff; --ink:#1b2333; --muted:#5d6779; --line:#e3e7ef;
+  --pri:#2457d6; --pri-soft:#e8eefc; --ok:#1f8a4c; --ok-soft:#e5f4e4; --bad:#c23b3b; --bad-soft:#fbebeb;
+  --warn:#b26a00; --warn-soft:#fdf2dd; --code:#f4f6fa;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:18px 24px}
+header h1{margin:0;font-size:1.35rem}
+header p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+nav{display:flex;gap:6px;flex-wrap:wrap;padding:12px 24px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+nav button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:999px;font:500 .88rem Inter,sans-serif;cursor:pointer}
+nav button.active{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{max-width:1050px;margin:0 auto;padding:24px}
+section{display:none}
+section.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+.card h2{margin:0 0 6px;font-size:1.15rem}
+.card h3{margin:14px 0 6px;font-size:1rem}
+.sub{color:var(--muted);margin:0 0 14px;font-size:.92rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:780px){.grid2{grid-template-columns:1fr}}
+pre{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;font-size:.84rem;margin:0}
+.btn{border:none;background:var(--pri);color:#fff;padding:9px 16px;border-radius:9px;font:600 .88rem Inter,sans-serif;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--pri);border:1px solid var(--pri)}
+.btn.red{background:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.console{background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:12px;min-height:120px;font-size:.82rem;max-height:240px;overflow:auto}
+.console div{margin:2px 0;white-space:pre-wrap}
+.c-ok{color:var(--ok)} .c-bad{color:var(--bad)} .c-info{color:var(--muted)} .c-warn{color:var(--warn)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600}
+.pill.priv{background:var(--bad-soft);color:var(--bad)} .pill.pub{background:var(--ok-soft);color:var(--ok)}
+/* capsule */
+.capsule-wrap{display:flex;justify-content:center;padding:10px 0 4px}
+.capsule{position:relative;width:420px;max-width:100%;border:3px solid var(--pri);border-radius:70px;padding:18px 26px;background:linear-gradient(90deg,#eef3ff 50%,#fff 50%);display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.capsule .half h4{margin:0 0 6px;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.chip{display:block;margin:5px 0;padding:6px 10px;border-radius:8px;font-size:.8rem;cursor:pointer;border:1px solid var(--line);background:#fff;transition:.2s}
+.chip:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.chip.data{border-left:4px solid var(--bad)} .chip.meth{border-left:4px solid var(--ok)}
+.explain{margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--pri-soft);font-size:.9rem;min-height:44px}
+.analogies{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:780px){.analogies{grid-template-columns:1fr}}
+.analogy{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff}
+.analogy .ic{font-size:1.6rem}
+.analogy b{display:block;margin:4px 0}
+.analogy p{margin:0;color:var(--muted);font-size:.86rem}
+/* bank */
+.balance{font-size:2rem;font-weight:700;margin:4px 0}
+.balance.neg{color:var(--bad)}
+.toggle{display:flex;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;width:max-content}
+.toggle button{border:none;background:#fff;padding:8px 14px;font:600 .82rem Inter;cursor:pointer;color:var(--muted)}
+.toggle button.on{background:var(--pri);color:#fff}
+/* matrix */
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{border:1px solid var(--line);padding:9px;text-align:center}
+th{background:#f3f5f9}
+td.cell{cursor:pointer;font-weight:600;user-select:none}
+td.cell.yes{background:var(--ok-soft);color:var(--ok)}
+td.cell.no{background:var(--bad-soft);color:var(--bad)}
+td.cell.wrong{outline:2px solid var(--warn);outline-offset:-2px}
+/* bug hunt */
+.codeline{display:flex;gap:10px;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:.86rem}
+.codeline:hover{background:#eef2fb}
+.codeline .ln{color:#9aa3b2;width:22px;text-align:right}
+.codeline.found{background:var(--ok-soft)}
+.codeline.miss{background:var(--bad-soft)}
+.codebox{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:8px 0}
+.feedback{margin-top:10px;font-size:.88rem}
+.feedback div{padding:6px 10px;border-radius:8px;margin:4px 0}
+/* quiz */
+.opt{display:block;width:100%;text-align:left;margin:7px 0;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;cursor:pointer;color:var(--ink)}
+.opt:hover{border-color:var(--pri)}
+.opt.right{background:var(--ok-soft);border-color:var(--ok)}
+.opt.wrongsel{background:var(--bad-soft);border-color:var(--bad)}
+.progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0 16px}
+.progress span{display:block;height:100%;background:var(--pri);transition:.3s}
+.expl{background:var(--pri-soft);padding:10px 14px;border-radius:10px;font-size:.9rem;margin-top:8px}
+/* flash */
+.flash{perspective:1000px;height:220px;cursor:pointer;margin:10px 0}
+.flash-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.flash.flipped .flash-inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:1.1rem;background:#fff}
+.face.back{transform:rotateY(180deg);background:var(--pri-soft);font-size:.98rem}
+.hint{color:var(--muted);font-size:.82rem}
+.score-big{font-size:2.4rem;font-weight:700;color:var(--pri)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔒 Encapsulation Lab</h1>
+  <p>HNDIT3012 Object Oriented Programming · Week 6 · Interactive practice</p>
+</header>
+<nav id="nav">
+  <button data-s="learn" class="active">1. Concept</button>
+  <button data-s="person">2. Person Playground</button>
+  <button data-s="bank">3. Why Validation?</button>
+  <button data-s="builder">4. Getter/Setter Builder</button>
+  <button data-s="matrix">5. Access Modifiers</button>
+  <button data-s="bugs">6. Bug Hunt</button>
+  <button data-s="quiz">7. Quiz</button>
+  <button data-s="flash">8. Flashcards</button>
+</nav>
+<main>
+
+<!-- 1 LEARN -->
+<section id="learn" class="active">
+  <div class="card">
+    <h2>What is encapsulation?</h2>
+    <p class="sub">Bundling <b>data</b> (variables) with the <b>methods</b> that operate on that data into a single unit, the <b>class</b>. Other classes can't touch the data directly; only the class's own methods can.</p>
+    <div class="capsule-wrap">
+      <div class="capsule">
+        <div class="half"><h4>Data (private)</h4>
+          <span class="chip data mono" data-e="A private field. Only code inside the Person class can read or change it. Outside code gets a compile error.">private String name;</span>
+          <span class="chip data mono" data-e="Another private field. Hidden from users of the class: the 'sensitive' data.">private int age;</span>
+        </div>
+        <div class="half"><h4>Methods (public)</h4>
+          <span class="chip meth mono" data-e="Getter (accessor): public, so anyone can call it. It returns the value of the private field.">getName()</span>
+          <span class="chip meth mono" data-e="Setter (mutator): public. It updates the private field and is the perfect place to validate input.">setName(n)</span>
+          <span class="chip meth mono" data-e="A setter with rules: e.g. only accept ages between 0 and 120. Bad data never gets in.">setAge(a)</span>
+        </div>
+      </div>
+    </div>
+    <div class="explain" id="capExplain">👆 Click any part of the capsule to see what it does.</div>
+  </div>
+
+  <div class="card">
+    <h2>The two rules</h2>
+    <div class="grid2">
+      <div><h3>① Make fields <span class="pill priv">private</span></h3><pre>private String name;</pre></div>
+      <div><h3>② Provide <span class="pill pub">public</span> get / set methods</h3><pre>public String getName() { return name; }
+public void setName(String newName) {
+    this.name = newName;
+}</pre></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Real-world analogies</h2>
+    <div class="analogies">
+      <div class="analogy"><div class="ic">💊</div><b>Capsule</b><p>The medicine (data) is sealed in a shell. You take the whole capsule, never the powder.</p></div>
+      <div class="analogy"><div class="ic">🏧</div><b>ATM</b><p>You can't open the cash box. You use the interface (PIN, amount) and the machine checks every request.</p></div>
+      <div class="analogy"><div class="ic">🚗</div><b>Car</b><p>You control speed with pedals, not by reaching into the engine. The pedals are the public methods.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Advantages (exam favourite)</h2>
+    <div class="analogies">
+      <div class="analogy"><div class="ic">🎛️</div><b>Better control</b><p>The class decides who can read or change its attributes, and how.</p></div>
+      <div class="analogy"><div class="ic">👁️</div><b>Read-only / write-only</b><p>Getter only = read-only. Setter only = write-only.</p></div>
+      <div class="analogy"><div class="ic">🔧</div><b>Flexible</b><p>Change one part of the code (the inside of the class) without affecting other parts.</p></div>
+      <div class="analogy"><div class="ic">🛡️</div><b>Security of data</b><p>Sensitive data is hidden and protected by validation.</p></div>
+      <div class="analogy"><div class="ic">🐞</div><b>Easier debugging</b><p>Only one place (the setter) can change a field, so bad values are easy to trace.</p></div>
+      <div class="analogy"><div class="ic">♻️</div><b>Reusable & testable</b><p>A self-contained class is easy to reuse and test.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 PERSON -->
+<section id="person">
+  <div class="card">
+    <h2>Person Playground</h2>
+    <p class="sub">This is the lecture example. Run statements from <code>Main</code> and see which ones the Java compiler allows.</p>
+    <div class="grid2">
+      <div>
+<pre>public class Person {
+    private String name;   // hidden
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String newName) {
+        this.name = newName;
+    }
+}</pre>
+        <h3>Object state (inside the capsule)</h3>
+        <pre id="pState">myObj → Person { name = null }</pre>
+      </div>
+      <div>
+        <h3>Run a statement from Main</h3>
+        <div class="row"><input id="pName" value="John" style="flex:1" aria-label="Name value"></div>
+        <div class="row">
+          <button class="btn" id="pSet">myObj.setName("…")</button>
+          <button class="btn" id="pGet">println(myObj.getName())</button>
+        </div>
+        <div class="row">
+          <button class="btn red" id="pDirectW">myObj.name = "…"</button>
+          <button class="btn red" id="pDirectR">println(myObj.name)</button>
+        </div>
+        <div class="row"><button class="btn ghost" id="pNew">new Person()</button><button class="btn ghost" id="pClear">Clear console</button></div>
+        <div class="console mono" id="pConsole"><div class="c-info">// Console output appears here</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>The <code>this</code> trap</h2>
+    <p class="sub">Pick the setter body, then call <code>setName("Amal")</code>. Which version actually stores the name?</p>
+    <div class="row">
+      <select id="tVer">
+        <option value="a">this.name = name;</option>
+        <option value="b">name = name;</option>
+      </select>
+      <button class="btn" id="tRun">Run setName("Amal") then getName()</button>
+    </div>
+<pre id="tCode"></pre>
+    <div class="console mono" id="tConsole" style="min-height:60px"></div>
+  </div>
+</section>
+
+<!-- 3 BANK -->
+<section id="bank">
+  <div class="card">
+    <h2>Why validation matters: BankAccount</h2>
+    <p class="sub">Switch between a <b>public field</b> design and an <b>encapsulated</b> design, then try to break the account.</p>
+    <div class="toggle" id="bankMode"><button data-m="open">❌ public double balance</button><button data-m="enc" class="on">✅ private + methods</button></div>
+    <div class="grid2" style="margin-top:14px">
+      <div>
+        <div class="hint">Balance (Rs.)</div>
+        <div class="balance" id="bal">5,000.00</div>
+        <div class="row"><input id="amt" type="number" value="1000" style="width:140px" aria-label="Amount"></div>
+        <div class="row">
+          <button class="btn" id="bDep">deposit(amt)</button>
+          <button class="btn" id="bWd">withdraw(amt)</button>
+          <button class="btn red" id="bSet">balance = amt</button>
+        </div>
+        <div class="row"><button class="btn ghost" id="bReset">Reset to 5,000</button></div>
+      </div>
+      <div><pre id="bankCode"></pre></div>
+    </div>
+    <div class="console mono" id="bConsole" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<!-- 4 BUILDER -->
+<section id="builder">
+  <div class="card">
+    <h2>Getter / Setter Builder</h2>
+    <p class="sub">Design an encapsulated class. Add fields, choose access, add validation, and get ready-to-compile Java.</p>
+    <div class="row">
+      <label>Class name <input id="gClass" value="Student" style="width:150px"></label>
+    </div>
+    <div class="row">
+      <select id="gType"><option>String</option><option>int</option><option>double</option><option>boolean</option></select>
+      <input id="gField" placeholder="field name e.g. age" style="width:170px">
+      <select id="gAccess"><option value="rw">Read / write</option><option value="r">Read-only (getter)</option><option value="w">Write-only (setter)</option></select>
+      <label class="hint"><input type="checkbox" id="gVal"> validate</label>
+      <input id="gMin" type="number" placeholder="min" style="width:80px">
+      <input id="gMax" type="number" placeholder="max" style="width:80px">
+      <button class="btn" id="gAdd">Add field</button>
+    </div>
+    <div class="hint">Validation: numbers use min/max; Strings reject null/empty.</div>
+    <div id="gList" class="row"></div>
+    <div class="row"><button class="btn ghost" id="gCopy">Copy code</button><span class="hint" id="gCopied"></span></div>
+    <pre id="gOut"></pre>
+  </div>
+</section>
+
+<!-- 5 MATRIX -->
+<section id="matrix">
+  <div class="card">
+    <h2>Access Modifier Challenge</h2>
+    <p class="sub">Click each cell to mark it ✔ (accessible) or ✘ (not accessible). Then check your answers.</p>
+    <table id="mTable">
+      <thead><tr><th>Modifier</th><th>Same class</th><th>Same package</th><th>Subclass (other pkg)</th><th>Anywhere</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="row" style="margin-top:12px"><button class="btn" id="mCheck">Check answers</button><button class="btn ghost" id="mShow">Show solution</button><button class="btn ghost" id="mReset">Reset</button></div>
+    <div id="mFb" class="feedback"></div>
+    <p class="hint">For encapsulation: fields are <b>private</b>, getters/setters are <b>public</b>.</p>
+  </div>
+</section>
+
+<!-- 6 BUGS -->
+<section id="bugs">
+  <div class="card">
+    <h2>Bug Hunt</h2>
+    <p class="sub">Each class breaks encapsulation somewhere. Click the lines you think are wrong, then press Check.</p>
+    <div class="row"><select id="bSel"></select><span class="hint" id="bCount"></span></div>
+    <div class="codebox mono" id="bCode"></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="bCheck">Check</button><button class="btn ghost" id="bReveal">Reveal</button></div>
+    <div class="feedback" id="bFb"></div>
+  </div>
+</section>
+
+<!-- 7 QUIZ -->
+<section id="quiz">
+  <div class="card" id="quizCard"></div>
+</section>
+
+<!-- 8 FLASH -->
+<section id="flash">
+  <div class="card">
+    <h2>Flashcards</h2>
+    <p class="sub">Click the card to flip it. Use the arrows to move.</p>
+    <div class="flash" id="fc"><div class="flash-inner"><div class="face front" id="fFront"></div><div class="face back" id="fBack"></div></div></div>
+    <div class="row" style="justify-content:center"><button class="btn ghost" id="fPrev">← Prev</button><span id="fPos" class="hint"></span><button class="btn ghost" id="fNext">Next →</button><button class="btn ghost" id="fShuf">Shuffle</button></div>
+  </div>
+</section>
+
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function log(el,msg,cls){const d=document.createElement('div');d.className=cls||'';d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+
+// NAV
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('active',x===b));
+  document.querySelectorAll('section').forEach(s=>s.classList.toggle('active',s.id===b.dataset.s));
+  window.scrollTo({top:0});
+});
+
+// 1 capsule
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{$('#capExplain').innerHTML='<b class="mono">'+esc(c.textContent)+'</b> — '+esc(c.dataset.e);});
+
+// 2 PERSON
+let pname=null;
+const pc=$('#pConsole');
+function pState(){ $('#pState').textContent='myObj → Person { name = '+(pname===null?'null':'"'+pname+'"')+' }'; }
+$('#pSet').onclick=()=>{const v=$('#pName').value;pname=v;log(pc,'> myObj.setName("'+v+'");','c-info');log(pc,'✔ Compiled. Setter stored "'+v+'" in the private field.','c-ok');pState();};
+$('#pGet').onclick=()=>{log(pc,'> System.out.println(myObj.getName());','c-info');log(pc,String(pname),'');};
+$('#pDirectW').onclick=()=>{log(pc,'> myObj.name = "'+$('#pName').value+'";','c-info');log(pc,'Main.java:5: error: name has private access in Person','c-bad');log(pc,'  ✘ Encapsulation blocked this. Use setName() instead.','c-warn');};
+$('#pDirectR').onclick=()=>{log(pc,'> System.out.println(myObj.name);','c-info');log(pc,'Main.java:6: error: name has private access in Person','c-bad');log(pc,'  ✘ Use getName() instead.','c-warn');};
+$('#pNew').onclick=()=>{pname=null;log(pc,'> Person myObj = new Person();','c-info');log(pc,'New object created. name defaults to null.','c-ok');pState();};
+$('#pClear').onclick=()=>{pc.innerHTML='';};
+pState();
+
+// this trap
+function tShow(){const v=$('#tVer').value;$('#tCode').textContent='public void setName(String name) {\n    '+(v==='a'?'this.name = name;   // field = parameter':'name = name;        // parameter = parameter ?!')+'\n}';}
+$('#tVer').onchange=tShow;tShow();
+$('#tRun').onclick=()=>{const t=$('#tConsole');t.innerHTML='';const v=$('#tVer').value;
+  log(t,'> p.setName("Amal"); System.out.println(p.getName());','c-info');
+  if(v==='a'){log(t,'Amal','');log(t,'✔ this.name refers to the field, so it was updated.','c-ok');}
+  else{log(t,'null','');log(t,'✘ The parameter "name" hides the field. name = name assigns the parameter to itself; the field never changes.','c-bad');}
+};
+
+// 3 BANK
+let bal=5000,mode='enc';const bc=$('#bConsole');
+const codeEnc=`public class BankAccount {
+    private double balance;
+
+    public double getBalance() { return balance; }
+
+    public void deposit(double amt) {
+        if (amt > 0) balance += amt;
+    }
+    public boolean withdraw(double amt) {
+        if (amt > 0 && amt <= balance) {
+            balance -= amt;
+            return true;
+        }
+        return false;
+    }
+    // no setBalance(): balance is read-only
+}`;
+const codeOpen=`public class BankAccount {
+    public double balance;   // anyone can change it!
+}
+
+// Main can do anything:
+acc.balance = -999999;
+acc.balance -= 50000;   // no checks`;
+function bRender(){const e=$('#bal');e.textContent=bal.toLocaleString('en-LK',{minimumFractionDigits:2,maximumFractionDigits:2});e.classList.toggle('neg',bal<0);
+  $('#bankCode').textContent=mode==='enc'?codeEnc:codeOpen;
+  $('#bDep').textContent=mode==='enc'?'deposit(amt)':'balance += amt';
+  $('#bWd').textContent=mode==='enc'?'withdraw(amt)':'balance -= amt';
+}
+document.querySelectorAll('#bankMode button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('#bankMode button').forEach(x=>x.classList.toggle('on',x===b));bc.innerHTML='';log(bc,mode==='enc'?'Mode: encapsulated (private balance + methods with rules)':'Mode: public field (no protection)','c-info');bRender();});
+$('#bDep').onclick=()=>{const a=parseFloat($('#amt').value)||0;
+  if(mode==='open'){bal+=a;log(bc,'> acc.balance += '+a+';  → no checks','c-warn');}
+  else if(a>0){bal+=a;log(bc,'> acc.deposit('+a+');  ✔ accepted','c-ok');}
+  else log(bc,'> acc.deposit('+a+');  ✘ rejected: amount must be > 0','c-bad');bRender();};
+$('#bWd').onclick=()=>{const a=parseFloat($('#amt').value)||0;
+  if(mode==='open'){bal-=a;log(bc,'> acc.balance -= '+a+';  → no checks'+(bal<0?'  ⚠ balance is now NEGATIVE':''),'c-warn');}
+  else if(a>0&&a<=bal){bal-=a;log(bc,'> acc.withdraw('+a+');  ✔ returned true','c-ok');}
+  else log(bc,'> acc.withdraw('+a+');  ✘ returned false ('+(a<=0?'invalid amount':'insufficient funds')+')','c-bad');bRender();};
+$('#bSet').onclick=()=>{const a=parseFloat($('#amt').value)||0;
+  if(mode==='open'){bal=a;log(bc,'> acc.balance = '+a+';  → anyone can overwrite the balance!','c-warn');}
+  else log(bc,'> acc.balance = '+a+';\nMain.java:9: error: balance has private access in BankAccount','c-bad');bRender();};
+$('#bReset').onclick=()=>{bal=5000;bRender();log(bc,'Balance reset to 5,000','c-info');};
+bRender();
+
+// 4 BUILDER
+let fields=[{t:'String',n:'name',a:'rw',v:true},{t:'int',n:'age',a:'rw',v:true,min:16,max:60},{t:'String',n:'studentId',a:'r',v:false}];
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function gen(){
+  const cn=($('#gClass').value||'MyClass').replace(/\W/g,'')||'MyClass';
+  let s='public class '+cn+' {\n';
+  fields.forEach(f=>{s+='    private '+(f.a==='r'?'final ':'')+f.t+' '+f.n+';\n';});
+  const ro=fields.filter(f=>f.a==='r');
+  if(ro.length){s+='\n    public '+cn+'('+ro.map(f=>f.t+' '+f.n).join(', ')+') {\n';ro.forEach(f=>s+='        this.'+f.n+' = '+f.n+';\n');s+='    }\n';}
+  fields.forEach(f=>{
+    if(f.a!=='w'){s+='\n    public '+f.t+' '+(f.t==='boolean'?'is':'get')+cap(f.n)+'() {\n        return '+f.n+';\n    }\n';}
+    if(f.a!=='r'){s+='\n    public void set'+cap(f.n)+'('+f.t+' '+f.n+') {\n';
+      if(f.v&&f.t==='String'){s+='        if ('+f.n+' == null || '+f.n+'.trim().isEmpty()) {\n            throw new IllegalArgumentException("'+f.n+' cannot be empty");\n        }\n';}
+      else if(f.v&&(f.t==='int'||f.t==='double')&&(f.min!==undefined||f.max!==undefined)){
+        const c=[];if(f.min!==undefined)c.push(f.n+' < '+f.min);if(f.max!==undefined)c.push(f.n+' > '+f.max);
+        s+='        if ('+c.join(' || ')+') {\n            throw new IllegalArgumentException("Invalid '+f.n+': " + '+f.n+');\n        }\n';}
+      s+='        this.'+f.n+' = '+f.n+';\n    }\n';}
+  });
+  s+='}';$('#gOut').textContent=s;
+  $('#gList').innerHTML='';fields.forEach((f,i)=>{const sp=document.createElement('span');sp.className='chip mono';sp.style.display='inline-block';sp.innerHTML=esc(f.t+' '+f.n)+' <span class="hint">('+({rw:'read/write',r:'read-only',w:'write-only'})[f.a]+(f.v?', validated':'')+')</span> ✕';sp.title='Remove';sp.onclick=()=>{fields.splice(i,1);gen();};$('#gList').appendChild(sp);});
+}
+$('#gAdd').onclick=()=>{const n=$('#gField').value.trim();if(!/^[a-zA-Z_]\w*$/.test(n)){$('#gField').style.borderColor='var(--bad)';return;}$('#gField').style.borderColor='';
+  if(fields.some(f=>f.n===n))return;
+  const f={t:$('#gType').value,n,a:$('#gAccess').value,v:$('#gVal').checked};
+  const mi=$('#gMin').value,ma=$('#gMax').value;if(mi!=='')f.min=+mi;if(ma!=='')f.max=+ma;
+  if(f.t==='boolean')f.v=false;fields.push(f);$('#gField').value='';gen();};
+$('#gClass').oninput=gen;
+$('#gCopy').onclick=()=>{try{navigator.clipboard.writeText($('#gOut').textContent).then(()=>$('#gCopied').textContent='Copied!',()=>$('#gCopied').textContent='Copy blocked; select the code manually.');}catch(e){$('#gCopied').textContent='Copy blocked; select the code manually.';}};
+gen();
+
+// 5 MATRIX
+const mods=[['private',[1,0,0,0]],['default (no modifier)',[1,1,0,0]],['protected',[1,1,1,0]],['public',[1,1,1,1]]];
+let mAns;
+function mInit(){mAns=mods.map(()=>[null,null,null,null]);const tb=$('#mTable tbody');tb.innerHTML='';
+  mods.forEach((m,r)=>{const tr=document.createElement('tr');tr.innerHTML='<th class="mono">'+m[0]+'</th>';
+    for(let c=0;c<4;c++){const td=document.createElement('td');td.className='cell';td.textContent='?';
+      td.onclick=()=>{const v=mAns[r][c];mAns[r][c]=v===null?1:v===1?0:null;td.className='cell'+(mAns[r][c]===1?' yes':mAns[r][c]===0?' no':'');td.textContent=mAns[r][c]===1?'✔':mAns[r][c]===0?'✘':'?';};
+      tr.appendChild(td);}tb.appendChild(tr);});$('#mFb').innerHTML='';}
+$('#mCheck').onclick=()=>{let ok=0,tot=16,blank=0;const rows=$('#mTable tbody').rows;
+  mods.forEach((m,r)=>{for(let c=0;c<4;c++){const td=rows[r].cells[c+1];td.classList.remove('wrong');if(mAns[r][c]===null)blank++;else if(mAns[r][c]===m[1][c])ok++;else td.classList.add('wrong');}});
+  $('#mFb').innerHTML='<div style="background:'+(ok===16?'var(--ok-soft)':'var(--warn-soft)')+'">'+ok+' / '+tot+' correct'+(blank?' · '+blank+' left blank':'')+(ok===16?' 🎉 Perfect!':' · Wrong cells are outlined.')+'</div>';};
+$('#mShow').onclick=()=>{const rows=$('#mTable tbody').rows;mods.forEach((m,r)=>{for(let c=0;c<4;c++){mAns[r][c]=m[1][c];const td=rows[r].cells[c+1];td.className='cell '+(m[1][c]?'yes':'no');td.textContent=m[1][c]?'✔':'✘';}});$('#mFb').innerHTML='<div style="background:var(--pri-soft)">Rule of thumb: private → default → protected → public, each one opens up one more level.</div>';};
+$('#mReset').onclick=mInit;mInit();
+
+// 6 BUGS
+const bugs=[
+ {title:'Car',lines:['class Car {','    String model;','    private int speed;','','    public void setSpeed(int speed) {','        speed = speed;','    }','    public void getSpeed() {','        return speed;','    }','}'],
+  bad:{1:'model has no access modifier (default). It should be private.',5:'speed = speed; assigns the parameter to itself. Use this.speed = speed;',7:'A getter must return the field type: public int getSpeed().'}},
+ {title:'Employee',lines:['public class Employee {','    private String empId;','    public double salary;','','    public String getEmpId() { return empId; }','    public void setEmpId(String id) { empId = id; }','','    public double getSalary() {','        salary = salary * 1.1;','        return salary;','    }','}'],
+  bad:{2:'salary is public: anyone can set any value. Make it private with a validated setter.',5:'An employee ID should be read-only. Remove the setter and set it once in the constructor.',8:'A getter must not change data. Remove the side effect.'}},
+ {title:'Course',lines:['import java.util.*;','','public class Course {','    private String code;','    private List<String> students = new ArrayList<>();','','    public List<String> getStudents() {','        return students;','    }','    public void setCode(String code) {','        this.code = code;','    }','}'],
+  bad:{7:'Returns the private list itself, so callers can add/remove students freely. Return a copy: new ArrayList<>(students).',10:'No validation: code can be null or empty. Check before storing.'}}
+];
+let bi=0,bPicked=new Set();
+bugs.forEach((b,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Class '+(i+1)+': '+b.title;$('#bSel').appendChild(o);});
+function bRenderCode(){const b=bugs[bi];bPicked=new Set();$('#bFb').innerHTML='';$('#bCount').textContent=Object.keys(b.bad).length+' bugs to find';
+  const box=$('#bCode');box.innerHTML='';b.lines.forEach((l,i)=>{const d=document.createElement('div');d.className='codeline';d.innerHTML='<span class="ln">'+(i+1)+'</span><span>'+(esc(l)||'&nbsp;')+'</span>';
+    d.onclick=()=>{if(bPicked.has(i)){bPicked.delete(i);d.style.background='';}else{bPicked.add(i);d.style.background='var(--warn-soft)';}};box.appendChild(d);});}
+$('#bSel').onchange=()=>{bi=+$('#bSel').value;bRenderCode();};
+function bEval(reveal){const b=bugs[bi];const rows=$('#bCode').children;let hit=0,fp=0,html='';
+  [...rows].forEach((r,i)=>{r.style.background='';r.classList.remove('found','miss');
+    if(b.bad[i]!==undefined){if(bPicked.has(i)||reveal){r.classList.add('found');}else r.classList.add('miss');if(bPicked.has(i))hit++;}
+    else if(bPicked.has(i)){fp++;r.style.background='var(--warn-soft)';}});
+  const n=Object.keys(b.bad).length;
+  html+='<div style="background:'+(hit===n&&!fp?'var(--ok-soft)':'var(--warn-soft)')+'"><b>'+hit+' / '+n+'</b> bugs found'+(fp?' · '+fp+' line(s) marked that are actually fine':'')+'</div>';
+  Object.entries(b.bad).forEach(([ln,m])=>{if(reveal||bPicked.has(+ln))html+='<div style="background:#f3f5f9"><b>Line '+(+ln+1)+':</b> '+esc(m)+'</div>';});
+  if(!reveal&&hit<n)html+='<div class="hint">Red lines still hide a bug. Try again or press Reveal.</div>';
+  $('#bFb').innerHTML=html;}
+$('#bCheck').onclick=()=>bEval(false);$('#bReveal').onclick=()=>bEval(true);
+bRenderCode();
+
+// 7 QUIZ
+const Q=[
+ {q:'Encapsulation in Java is best described as…',o:['Creating many objects from one class','Bundling data and the methods that operate on it into one unit, while restricting direct access','Inheriting fields from a parent class','Having many methods with the same name'],a:1,e:'Encapsulation = data + methods bundled in a class, with the data hidden from other classes.'},
+ {q:'Which access modifier should class attributes use for encapsulation?',o:['public','protected','private','static'],a:2,e:'Fields are declared private so only the class\'s own methods can access them.'},
+ {q:'What does a getter method do?',o:['Changes a private field','Returns the value of a private field','Deletes an object','Creates a new object'],a:1,e:'A getter (accessor) returns the value. A setter (mutator) changes it.'},
+ {q:'What is the correct getter name for a boolean field called active?',o:['getActive()','isActive()','active()','checkActive()'],a:1,e:'By Java convention, boolean getters usually start with "is".'},
+ {q:'An attribute with ONLY a getter method is…',o:['Write-only','Read-only','Public','Static'],a:1,e:'Getter only → read-only. Setter only → write-only.'},
+ {q:'A password field that can be set but never read back is an example of…',o:['Read-only','Write-only','Read/write','Inheritance'],a:1,e:'Setter only = write-only.'},
+ {q:'Given private String name; in Person, what happens with: myObj.name = "John"; in Main?',o:['It works normally','Runtime exception','Compile error: name has private access in Person','It sets name to null'],a:2,e:'Private members cannot be accessed outside the class, so the compiler rejects it.'},
+ {q:'In public void setAge(int age) { age = age; } what is the problem?',o:['Nothing, it works','The parameter is assigned to itself; the field never changes','It causes a compile error','It makes age read-only'],a:1,e:'The parameter hides the field. Use this.age = age;'},
+ {q:'What does "this" refer to inside a method?',o:['The parent class','The current object','The main method','A static variable'],a:1,e:'this is a reference to the current object, so this.name means the field of this object.'},
+ {q:'Which is NOT listed as an advantage of encapsulation?',o:['Better control of class attributes','Increased security of data','Flexibility: change one part without affecting others','Faster program execution'],a:3,e:'Encapsulation is about control, security and flexibility, not raw speed.'},
+ {q:'Where is the best place to stop a negative age being stored?',o:['In main()','Inside the setAge() setter','In the getter','In the constructor of Main'],a:1,e:'Setters are the gatekeepers. Validate there so bad data never gets in.'},
+ {q:'How does encapsulation give "flexibility"?',o:['The internal code of a class can change while its public methods stay the same, so other classes are unaffected','Any class can change any field','It allows multiple inheritance','It removes the need for objects'],a:0,e:'Callers depend only on the public methods, so internal changes don\'t ripple out.'}
+];
+let qi=0,qs=0,qAns=[];
+function qRender(){const c=$('#quizCard');
+  if(qi>=Q.length){const pct=Math.round(qs/Q.length*100);c.innerHTML='<h2>Quiz complete</h2><div class="score-big">'+qs+' / '+Q.length+'</div><p class="sub">'+(pct>=80?'Excellent! You\'re exam-ready on encapsulation. 🎉':pct>=50?'Good effort. Review the questions you missed below.':'Revisit tabs 1–3, then try again.')+'</p>'+
+    Q.map((x,i)=>qAns[i]!==x.a?'<div class="expl" style="margin:6px 0"><b>Q'+(i+1)+':</b> '+esc(x.q)+'<br>Correct: <b>'+esc(x.o[x.a])+'</b></div>':'').join('')+'<div class="row" style="margin-top:12px"><button class="btn" id="qRe">Try again</button></div>';
+    $('#qRe').onclick=()=>{qi=0;qs=0;qAns=[];qRender();};return;}
+  const x=Q[qi];
+  c.innerHTML='<h2>Quiz</h2><div class="hint">Question '+(qi+1)+' of '+Q.length+' · Score '+qs+'</div><div class="progress"><span style="width:'+(qi/Q.length*100)+'%"></span></div><p style="font-weight:600">'+esc(x.q)+'</p><div id="qOpts"></div><div id="qEx"></div>';
+  x.o.forEach((o,i)=>{const b=document.createElement('button');b.className='opt';b.textContent=String.fromCharCode(65+i)+'. '+o;
+    b.onclick=()=>{if(qAns[qi]!==undefined)return;qAns[qi]=i;if(i===x.a)qs++;
+      [...$('#qOpts').children].forEach((bb,j)=>{if(j===x.a)bb.classList.add('right');else if(j===i)bb.classList.add('wrongsel');});
+      $('#qEx').innerHTML='<div class="expl">'+(i===x.a?'✅ Correct. ':'❌ Not quite. ')+esc(x.e)+'</div><div class="row" style="margin-top:10px"><button class="btn" id="qNext">'+(qi===Q.length-1?'See results':'Next →')+'</button></div>';
+      $('#qNext').onclick=()=>{qi++;qRender();};};
+    $('#qOpts').appendChild(b);});
+}
+qRender();
+
+// 8 FLASH
+let F=[
+ ['Encapsulation','Bundling data (variables) and the methods that act on it into a single unit (class), restricting direct access to the data.'],
+ ['Data hiding','Making fields inaccessible from outside the class, usually by declaring them private.'],
+ ['Two steps to encapsulate','1) Declare fields private. 2) Provide public getter and setter methods.'],
+ ['Getter (accessor)','A public method that returns the value of a private field, e.g. getName().'],
+ ['Setter (mutator)','A public method that updates a private field, often with validation, e.g. setName(String n).'],
+ ['Read-only property','A private field with a getter but no setter.'],
+ ['Write-only property','A private field with a setter but no getter (e.g. password).'],
+ ['this keyword','A reference to the current object. this.name = name; assigns the parameter to the field.'],
+ ['4 advantages (lecture)','Better control · read-only/write-only · flexibility · increased data security.'],
+ ['Compile error when accessing private field','error: <field> has private access in <Class>'],
+ ['Encapsulation vs abstraction','Encapsulation hides data (private + accessors). Abstraction hides implementation complexity (abstract classes, interfaces).'],
+ ['Immutable class','All fields private and final, set in the constructor, with no setters.']
+];
+let fi=0;
+function fRender(){$('#fFront').textContent=F[fi][0];$('#fBack').textContent=F[fi][1];$('#fPos').textContent=(fi+1)+' / '+F.length;$('#fc').classList.remove('flipped');}
+$('#fc').onclick=()=>$('#fc').classList.toggle('flipped');
+$('#fPrev').onclick=()=>{fi=(fi-1+F.length)%F.length;fRender();};
+$('#fNext').onclick=()=>{fi=(fi+1)%F.length;fRender();};
+$('#fShuf').onclick=()=>{F.sort(()=>Math.random()-.5);fi=0;fRender();};
+fRender();
+</script>
+</body>
+</html>
